@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>校園健康小達人：緊急急救知識庫報告</title>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background-color: #f0fdf4; color: #1e293b; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 20px; }
+        
+        /* 投影片外框容器 */
+        .slide-container { background-color: #ffffff; width: 100%; max-width: 1000px; min-height: 580px; border-radius: 20px; padding: 40px; box-shadow: 0 10px 25px rgba(0,0,0,0.08); border: 4px solid #ccfbf1; display: flex; flex-direction: column; justify-content: space-between; }
+        
+        /* 單頁投影片控制 */
+        .slide-page { display: none; animation: fadeIn 0.3s ease; }
+        .slide-page.active { display: block; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* 頂部標題列 */
+        .slide-header { border-bottom: 3px solid #ccfbf1; padding-bottom: 16px; margin-bottom: 24px; display: flex; justify-content: space-between; align-items: flex-end; }
+        .slide-category { font-size: 14px; font-weight: bold; color: #0d9488; letter-spacing: 1px; margin-bottom: 6px; }
+        .slide-title { font-size: 26px; font-weight: 800; color: #115e59; }
+        .presenter-info { font-size: 14px; color: #64748b; text-align: right; }
+
+        /* 封面專屬樣式 */
+        .cover-box { text-align: center; padding: 50px 20px; background: linear-gradient(135deg, #f0fdf4 0%, #ccfbf1 100%); border-radius: 16px; border: 2px dashed #14b8a6; }
+        .cover-icon { font-size: 64px; margin-bottom: 16px; }
+        .cover-title { font-size: 34px; font-weight: 900; color: #115e59; margin-bottom: 12px; }
+        .cover-subtitle { font-size: 18px; color: #0f766e; margin-bottom: 28px; }
+        .cover-meta { display: inline-block; background: white; padding: 12px 28px; border-radius: 99px; font-size: 15px; font-weight: bold; color: #334155; box-shadow: 0 4px 10px rgba(0,0,0,0.05); }
+
+        /* 前言導言區塊 */
+        .intro-box { background-color: #f0fdf4; border-left: 5px solid #14b8a6; padding: 14px 18px; border-radius: 8px; margin-bottom: 24px; font-size: 15px; color: #334155; line-height: 1.6; }
+
+        /* 卡片網格 */
+        .card-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 20px; }
+        .card-grid-2 { display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; margin-bottom: 20px; }
+        
+        /* 互動卡片 */
+        .slide-card { background: #f8fafc; border-radius: 16px; padding: 22px; border: 2px solid #e2e8f0; cursor: pointer; transition: all 0.2s; }
+        .slide-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(13, 148, 136, 0.15); border-color: #14b8a6; background: #ffffff; }
+        .info-card { background: #f8fafc; border-radius: 16px; padding: 22px; border: 2px solid #ccfbf1; }
+        
+        .card-icon { font-size: 32px; margin-bottom: 10px; }
+        .card-title { font-size: 18px; font-weight: bold; color: #0f766e; margin-bottom: 8px; }
+        .card-desc { font-size: 14px; color: #475569; line-height: 1.6; }
+        .card-action { margin-top: 12px; font-size: 13px; font-weight: bold; color: #0d9488; }
+
+        /* 隨堂測驗按鈕 */
+        .quiz-btn { display: block; width: 100%; text-align: left; padding: 14px 18px; margin-bottom: 12px; background: #f8fafc; border: 2px solid #cbd5e1; border-radius: 12px; font-size: 15px; font-weight: bold; color: #334155; cursor: pointer; transition: all 0.2s; }
+        .quiz-btn:hover { border-color: #14b8a6; background: #f0fdf4; }
+        .quiz-feedback { padding: 14px; border-radius: 10px; font-weight: bold; margin-top: 10px; display: none; }
+
+        /* 底部投影片導覽列 (可點擊按鈕) */
+        .slide-footer { display: flex; justify-content: space-between; align-items: center; border-top: 2px solid #ccfbf1; padding-top: 18px; margin-top: 20px; font-size: 14px; color: #0f766e; font-weight: bold; }
+        .page-indicator { background: #f0fdf4; padding: 6px 18px; border-radius: 99px; border: 2px solid #ccfbf1; }
+        .nav-buttons { display: flex; gap: 10px; }
+        .nav-btn { background-color: #0d9488; color: white; border: none; padding: 8px 16px; border-radius: 8px; font-size: 14px; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        .nav-btn:hover:not(:disabled) { background-color: #0f766e; }
+        .nav-btn:disabled { background-color: #cbd5e1; color: #64748b; cursor: not-allowed; }
+
+        /* Modal 彈跳視窗 */
+        .modal { display: none; position: fixed; inset: 0; background-color: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 100; padding: 20px; }
+        .modal.active { display: flex; }
+        .modal-content { background: white; border-radius: 20px; max-width: 580px; width: 100%; padding: 32px; position: relative; box-shadow: 0 25px 30px rgba(0,0,0,0.15); border: 3px solid #14b8a6; max-height: 90vh; overflow-y: auto; }
+        .close-btn { position: absolute; top: 16px; right: 20px; font-size: 26px; background: none; border: none; cursor: pointer; color: #0d9488; font-weight: bold; }
+        .modal-title { font-size: 22px; font-weight: bold; color: #115e59; margin-bottom: 10px; }
+        .modal-situation { background-color: #f0fdf4; color: #0f766e; padding: 12px; border-radius: 10px; font-size: 14px; margin-bottom: 16px; border-left: 4px solid #14b8a6; }
+        .modal-steps-title { font-weight: bold; color: #334155; margin-bottom: 8px; font-size: 15px; }
+        .modal-steps { padding-left: 20px; font-size: 14px; color: #334155; line-height: 1.7; margin-bottom: 16px; }
+        .modal-steps li { margin-bottom: 8px; }
+        .modal-warning { background-color: #fff1f2; border-left: 4px solid #e11d48; color: #be185d; padding: 12px; font-size: 14px; border-radius: 8px; }
+        .btn-confirm { display: block; width: 100%; background-color: #0d9488; color: white; border: none; padding: 12px; border-radius: 10px; font-weight: bold; font-size: 16px; cursor: pointer; margin-top: 24px; }
+
+        @media (max-width: 768px) {
+            .card-grid, .card-grid-2 { grid-template-columns: 1fr; }
+            .slide-header { flex-direction: column; align-items: flex-start; gap: 10px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="slide-container">
+        
+        <!-- ==================== 第 1 頁：報告封面 ==================== -->
+        <div class="slide-page active" id="slide-1">
+            <div class="slide-header">
+                <div>
+                    <div class="slide-category">🏥 校園健康與安全衛生專題報告</div>
+                    <h1 class="slide-title">封面頁：報告主題與大綱</h1>
+                </div>
+                <div class="presenter-info">發表人：健康小達人<br>適用對象：全校師生</div>
+            </div>
+            <div class="cover-box">
+                <div class="cover-icon">🚑</div>
+                <h2 class="cover-title">黃金救援時刻：緊急急救知識小百科</h2>
+                <p class="cover-subtitle">學會正確的應變步驟，關鍵時刻你也能成為救人小英雄！</p>
+                <div class="cover-meta">📋 報告大綱：急救三原則 ➔ 三大核心急救術 ➔ 校園意外處理 ➔ 隨堂小測驗</div>
+            </div>
+        </div>
+
+        <!-- ==================== 第 2 頁：急救黃金原則 ==================== -->
+        <div class="slide-page" id="slide-2">
+            <div class="slide-header">
+                <div>
+                    <div class="slide-category">01. 觀念建立</div>
+                    <h1 class="slide-title">遇到緊急事故時的「救命三部曲」</h1>
+                </div>
+                <div class="presenter-info">投影片 02 / 05</div>
+            </div>
+            <div class="intro-box">
+                <strong>💡 老師常說：</strong>看到有人受傷或昏倒時，千萬不要直接衝過去！先保持冷靜，記住以下三個重要步驟：
+            </div>
+            <div class="card-grid">
+                <div class="info-card">
+                    <div class="card-icon">👀</div>
+                    <div class="card-title">第一步：確認現場安全</div>
+                    <div class="card-desc">觀察四周有沒有來車、電線走火或掉落物。先保護好自己，才能安全地幫助別人！</div>
+                </div>
+                <div class="info-card">
+                    <div class="card-icon">📞</div>
+                    <div class="card-title">第二步：大聲呼救與報案</div>
+                    <div class="card-desc">立刻請老師、保健室阿姨幫忙，並撥打 <strong>119</strong>，清楚說明「地點、發生什麼事、傷患人數」。</div>
+                </div>
+                <div class="info-card">
+                    <div class="card-icon">🩺</div>
+                    <div class="card-title">第三步：黃金時間施救</div>
+                    <div class="card-desc">在救護車抵達前的 4～6 分鐘是黃金救援期，依照正確步驟進行初步急救處理。</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 第 3 頁：三大核心急救術 (可點擊彈窗) ==================== -->
+        <div class="slide-page" id="slide-3">
+            <div class="slide-header">
+                <div>
+                    <div class="slide-category">02. 核心技能實作</div>
+                    <h1 class="slide-title">三大關鍵急救術（點擊卡片看詳細步驟）</h1>
+                </div>
+                <div class="presenter-info">投影片 03 / 05</div>
+            </div>
+            <div class="intro-box">
+                <strong>👆 互動提示：</strong>請點擊下方任一張卡片，螢幕會跳出詳細的操作步驟與安全注意事項喔！
+            </div>
+            <div class="card-grid">
+                <div class="slide-card" onclick="openModal('cpr')">
+                    <div class="card-icon">💓</div>
+                    <div class="card-title">1. 心肺復甦術 (CPR + AED)</div>
+                    <div class="card-desc">當周遭有人突然倒地、失去意識且沒有呼吸時，如何透過壓胸與去顫器挽救生命。</div>
+                    <div class="card-action">點擊展開報告詳情 →</div>
+                </div>
+                <div class="slide-card" onclick="openModal('bleeding')">
+                    <div class="card-icon">🩹</div>
+                    <div class="card-title">2. 外傷大量出血與包紮</div>
+                    <div class="card-desc">面對運動受傷、割傷造成的出血狀況，學習正確的直接加壓法與繃帶固定技巧。</div>
+                    <div class="card-action">點擊展開報告詳情 →</div>
+                </div>
+                <div class="slide-card" onclick="openModal('choking')">
+                    <div class="card-icon">🗣️</div>
+                    <div class="card-title">3. 異物梗塞急救 (哈姆立克)</div>
+                    <div class="card-desc">吃午餐不小心噎到、說不出話時，如何運用腹部推擠手法幫助同學吐出異物。</div>
+                    <div class="card-action">點擊展開報告詳情 →</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 第 4 頁：校園常見小意外 ==================== -->
+        <div class="slide-page" id="slide-4">
+            <div class="slide-header">
+                <div>
+                    <div class="slide-category">03. 校園生活應用</div>
+                    <h1 class="slide-title">下課與體育課常見小意外處理</h1>
+                </div>
+                <div class="presenter-info">投影片 04 / 05</div>
+            </div>
+            <div class="card-grid-2">
+                <div class="info-card">
+                    <div class="card-icon">👃</div>
+                    <div class="card-title">流鼻血怎麼辦？（千萬別仰頭！）</div>
+                    <div class="card-desc">
+                        1. 坐下並讓<strong>頭部微微向前傾</strong>（避免鼻血倒流進喉嚨嗆到）。<br>
+                        2. 用手指捏住鼻翼兩側軟骨處加壓 5～10 分鐘，改用嘴巴呼吸。<br>
+                        3. 可在鼻樑上冰敷幫助血管收縮。
+                    </div>
+                </div>
+                <div class="info-card">
+                    <div class="card-icon">🔥</div>
+                    <div class="card-title">打翻熱湯燙傷：沖、脫、泡、蓋、送</div>
+                    <div class="card-desc">
+                        1. <strong>沖：</strong>流動冷水沖洗傷口 15～30 分鐘降溫。<br>
+                        2. <strong>脫：</strong>在水中小心剪開或脫去衣物（不可硬扯）。<br>
+                        3. <strong>泡、蓋、送：</strong>泡冷水舒緩、蓋上乾淨紗布後盡速送醫。
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ==================== 第 5 頁：互動隨堂測驗 ==================== -->
+        <div class="slide-page" id="slide-5">
+            <div class="slide-header">
+                <div>
+                    <div class="slide-category">04. 有獎徵答時間</div>
+                    <h1 class="slide-title">健康小達人隨堂測驗：考考大家！</h1>
+                </div>
+                <div class="presenter-info">投影片 05 / 05</div>
+            </div>
+            <div class="intro-box">
+                <strong>❓ 題目：</strong>同學在營養午餐時間吃貢丸不小心噎到了，雙手掐住脖子發不出聲音，請問我們應該怎麼做？
+            </div>
+            <div>
+                <button class="quiz-btn" onclick="checkAnswer(false, '不對喔！拍背可能會讓食物掉進氣管更深處，非常危險！')">A. 趕快大力拍打他的背部，並拿一大杯水給他喝</button>
+                <button class="quiz-btn" onclick="checkAnswer(true, '🎉 答對了！站在患者背後，雙手環抱腰部，用「哈姆立克法」向內向上快速推擠肚臍上方！')">B. 站在他背後，使用「哈姆立克法」向內向上快速推擠腹部</button>
+                <button class="quiz-btn" onclick="checkAnswer(false, '不對喔！把手伸進嘴巴挖可能會把食物越推越裡面，還會被咬傷！')">C. 叫他張開嘴巴，直接用手伸進去把貢丸挖出來</button>
+            </div>
+            <div id="quizFeedback" class="quiz-feedback"></div>
+        </div>
+
+        <!-- ==================== 底部可點擊翻頁導覽列 ==================== -->
+        <div class="slide-footer">
+            <span id="footerLabel">📚 校園健康專題報告</span>
+            <div class="page-indicator" id="pageIndicator">投影片 01 / 05</div>
+            <div class="nav-buttons">
+                <button class="nav-btn" id="prevBtn" onclick="changeSlide(-1)" disabled>← 上一頁</button>
+                <button class="nav-btn" id="nextBtn" onclick="changeSlide(1)">下一頁 →</button>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 彈出視窗 Modal (詳細急救步驟) -->
+    <div id="guideModal" class="modal">
+        <div class="modal-content">
+            <button class="close-btn" onclick="closeModal()">×</button>
+            <div id="modalBody"></div>
+            <button class="btn-confirm" onclick="closeModal()">我了解了，返回報告</button>
+        </div>
+    </div>
+
+    <!-- JavaScript 互動與翻頁邏輯 -->
+    <script>
+        let currentSlide = 1;
+        const totalSlides = 5;
+
+        function changeSlide(direction) {
+            // 隱藏目前頁面
+            document.getElementById(`slide-${currentSlide}`).classList.remove('active');
+            
+            // 計算新頁碼
+            currentSlide += direction;
+            if (currentSlide < 1) currentSlide = 1;
+            if (currentSlide > totalSlides) currentSlide = totalSlides;
+
+            // 顯示新頁面
+            document.getElementById(`slide-${currentSlide}`).classList.add('active');
+
+            // 更新頁碼指示與按鈕狀態
+            document.getElementById('pageIndicator').innerText = `投影片 0${currentSlide} / 0${totalSlides}`;
+            document.getElementById('prevBtn').disabled = (currentSlide === 1);
+            document.getElementById('nextBtn').disabled = (currentSlide === totalSlides);
+        }
+
+        // 支援鍵盤左右方向鍵翻頁
+        document.addEventListener('keydown', (e) => {
+            if (document.getElementById('guideModal').classList.contains('active')) return;
+            if (e.key === 'ArrowLeft' && currentSlide > 1) changeSlide(-1);
+            if (e.key === 'ArrowRight' && currentSlide < totalSlides) changeSlide(1);
+        });
+
+        // 隨堂測驗判斷
+        function checkAnswer(isCorrect, message) {
+            const feedback = document.getElementById('quizFeedback');
+            feedback.style.display = 'block';
+            feedback.innerText = message;
+            if (isCorrect) {
+                feedback.style.backgroundColor = '#dcfce7';
+                feedback.style.color = '#166534';
+                feedback.style.border = '2px solid #22c55e';
+            } else {
+                feedback.style.backgroundColor = '#fee2e2';
+                feedback.style.color = '#991b1b';
+                feedback.style.border = '2px solid #ef4444';
+            }
+        }
+
+        // 三大急救術詳細資料庫
+        const guideData = {
+            cpr: {
+                title: "💓 主題一：CPR 與 AED 標準操作流程",
+                situation: "【適用情境】當發現身旁有人突然倒地、叫喚無反應、沒有正常呼吸時。",
+                steps: [
+                    "<strong>叫（評估意識）：</strong>輕拍患者雙肩，大聲呼喚：「喂！你怎麼了？」確認有無意識。",
+                    "<strong>叫（尋求求救）：</strong>指定現場特定旁人：「穿紅衣服的先生，請幫我打 119 並拿 AED！」",
+                    "<strong>壓（胸外按壓）：</strong>雙手交疊於兩乳頭連線正中央，手臂打直，用力向下壓（深度 5-6 公分，頻率 100-120次/分）。",
+                    "<strong>電（使用 AED）：</strong>AED 抵達後立刻開機，按照語音指示貼上電擊貼片並進行分析與電擊。"
+                ],
+                warning: "千萬不要慌張！壓胸中斷時間絕對不能超過 10 秒，若不敢做人工呼吸，請持續進行「純壓胸 CPR」。"
+            },
+            bleeding: {
+                title: "🩹 主題二：外傷大量出血與包紮處理",
+                situation: "【適用情境】校園運動碰撞、跌倒擦傷或遭遇穿刺傷導致鮮血直流。",
+                steps: [
+                    "<strong>自我防護：</strong>施救前若有醫療手套請先戴上，避免直接接觸患者血液。",
+                    "<strong>直接加壓止血：</strong>使用乾淨的紗布或毛巾直接蓋在傷口上，用手掌根部持續用力向下壓迫。",
+                    "<strong>彈性繃帶固定：</strong>若血水滲透紗布，切勿抽換，直接疊加新紗布並用繃帶緊密包紮固定。",
+                    "<strong>抬高患部：</strong>若四肢受傷，在沒有骨折疑慮的情況下，可將傷處抬高至高於心臟幫助減緩出血。"
+                ],
+                warning: "絕對不可以把已經刺進傷口裡的異物（如玻璃碎片、鐵釘）拔出來，否則會大出血不止！"
+            },
+            choking: {
+                title: "🗣️ 主題三：哈姆立克法（異物梗塞急救）",
+                situation: "【適用情境】患者因進食噎到，雙手掐住脖子、發不出聲音、臉色發紫。",
+                steps: [
+                    "<strong>詢問與判斷：</strong>大聲詢問：「你噎到了嗎？」若患者無法發聲或點頭，立即表明身分並協助急救。",
+                    "<strong>站穩腳步：</strong>站在患者身後，雙腳成弓箭步，前腳跨在患者兩腿之間穩固身體。",
+                    "<strong>環抱與握拳：</strong>雙手環抱患者腰部，一手握拳（大拇指側朝向患者腹部），放在肚臍上方與胸骨下緣之間。",
+                    "<strong>向內向上推擠：</strong>另一手包住拳頭，對準該位置施力，瞬間向內、向上快速推擠，直到異物吐出。"
+                ],
+                warning: "如果患者在施救過程中失去意識、倒地癱軟，請立刻停止哈姆立克法，並改為進行 CPR！"
+            }
+        };
+
+        const modal = document.getElementById('guideModal');
+        const modalBody = document.getElementById('modalBody');
+
+        function openModal(topicKey) {
+            const data = guideData[topicKey];
+            if (!data) return;
+
+            const stepsHtml = data.steps.map(step => `<li>${step}</li>`).join('');
+
+            modalBody.innerHTML = `
+                <div class="modal-title">${data.title}</div>
+                <div class="modal-situation">${data.situation}</div>
+                <div class="modal-steps-title">📌 報告重點步驟說明：</div>
+                <ol class="modal-steps">${stepsHtml}</ol>
+                <div class="modal-warning"><strong>⚠️ 安全注意事項：</strong>${data.warning}</div>
+            `;
+            modal.classList.add('active');
+        }
+
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) closeModal();
+        });
+    </script>
+</body>
+</html>
