@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>零基礎急救入門：基於 LLM Wiki 的教學型互動簡報</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Microsoft JhengHei", sans-serif; }
+    body { background: #ecfdf5; color: #1e293b; display: flex; justify-content: center; align-items: center; min-height: 100vh; padding: 16px; }
+    .deck { background: #ffffff; width: 100%; max-width: 1020px; min-height: 620px; border-radius: 20px; padding: 36px 40px; box-shadow: 0 12px 32px rgba(13, 148, 136, 0.12); border: 3px solid #99f6e4; display: flex; flex-direction: column; justify-content: space-between; }
+    .slide { display: none; animation: fadeIn 0.25s ease; }
+    .slide.active { display: block; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+
+    .header { border-bottom: 2px solid #ccfbf1; padding-bottom: 14px; margin-bottom: 22px; display: flex; justify-content: space-between; align-items: flex-end; gap: 12px; flex-wrap: wrap; }
+    .badge { display: inline-block; background: #ccfbf1; color: #0f766e; font-size: 13px; font-weight: 700; padding: 4px 12px; border-radius: 99px; margin-bottom: 6px; }
+    .title { font-size: 25px; font-weight: 800; color: #115e59; }
+    .source-tag { font-size: 13px; color: #475569; background: #f1f5f9; padding: 6px 12px; border-radius: 8px; font-weight: 600; }
+
+    .cover { text-align: center; padding: 44px 20px; background: linear-gradient(135deg, #f0fdfa 0%, #ccfbf1 100%); border-radius: 16px; border: 2px dashed #14b8a6; }
+    .cover-icon { font-size: 60px; margin-bottom: 12px; }
+    .cover h1 { font-size: 32px; color: #115e59; font-weight: 900; margin-bottom: 10px; }
+    .cover p { font-size: 17px; color: #0f766e; margin-bottom: 24px; line-height: 1.6; }
+    .pill-list { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px; }
+    .pill { background: #ffffff; border: 1px solid #5eead4; color: #0f766e; padding: 6px 14px; border-radius: 99px; font-size: 13px; font-weight: 700; }
+
+    .beginner-tip { background: #fefce8; border-left: 5px solid #eab308; padding: 12px 16px; border-radius: 8px; margin-bottom: 18px; font-size: 15px; color: #713f12; line-height: 1.6; }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; }
+    .grid-4 { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 14px; }
+    .card { background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 14px; padding: 18px; }
+    .card h3 { color: #0f766e; font-size: 17px; margin-bottom: 8px; }
+    .card p, .card li { font-size: 14.5px; line-height: 1.65; color: #334155; }
+    .card ul { padding-left: 18px; }
+
+    .step-num { display: inline-flex; width: 28px; height: 28px; align-items: center; justify-content: center; background: #0d9488; color: white; border-radius: 50%; font-weight: 800; font-size: 14px; margin-right: 6px; }
+    .myth-box { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-top: 14px; }
+    .wrong { background: #fef2f2; border: 1px solid #fecaca; border-radius: 12px; padding: 14px; color: #991b1b; font-size: 14px; line-height: 1.6; }
+    .right { background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 12px; padding: 14px; color: #166534; font-size: 14px; line-height: 1.6; }
+
+    .quiz-opt { display: block; width: 100%; text-align: left; padding: 12px 16px; margin-bottom: 10px; border: 2px solid #cbd5e1; border-radius: 10px; background: #ffffff; cursor: pointer; font-size: 15px; font-weight: 600; color: #1e293b; transition: 0.2s; }
+    .quiz-opt:hover { border-color: #0d9488; background: #f0fdfa; }
+    .quiz-feedback { margin-top: 12px; padding: 14px; border-radius: 10px; font-size: 15px; font-weight: 700; display: none; }
+
+    .footer { border-top: 2px solid #f1f5f9; padding-top: 16px; margin-top: 24px; display: flex; justify-content: space-between; align-items: center; }
+    .nav-btn { background: #0d9488; color: white; border: none; padding: 10px 20px; border-radius: 10px; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .nav-btn:disabled { background: #cbd5e1; cursor: not-allowed; }
+    .dots { display: flex; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; background: #cbd5e1; cursor: pointer; }
+    .dot.active { background: #0d9488; width: 24px; border-radius: 99px; }
+  </style>
+</head>
+<body>
+  <div class="deck">
+    <!-- Slide 1: Cover -->
+    <div class="slide active">
+      <div class="cover">
+        <div class="cover-icon">🚑</div>
+        <div class="badge">LLM Wiki 教學型簡報｜零基礎新手指南</div>
+        <h1>日常與校園緊急急救入門</h1>
+        <p>沒學過醫護也能看懂！本簡報整合 LLM Wiki 的 5 篇核心知識來源，<br>帶你用最直覺的口訣與步驟，掌握黃金救援時刻。</p>
+        <div class="pill-list">
+          <span class="pill">Source 01 現場評估與求救</span>
+          <span class="pill">Source 02 成人 CPR</span>
+          <span class="pill">Source 03 AED 電擊器</span>
+          <span class="pill">Source 04 哈姆立克法</span>
+          <span class="pill">Source 05 大出血與常見外傷</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 2: Source 01 -->
+    <div class="slide">
+      <div class="header">
+        <div>
+          <div class="badge">第一課｜救人前先保護自己</div>
+          <div class="title">現場評估與求救原則（叫、叫、C、A、B、D）</div>
+        </div>
+        <div class="source-tag">知識來源：Wiki Source 01</div>
+      </div>
+      <div class="beginner-tip">💡 <strong>新手白話理解</strong>：看到有人倒下時，千萬別直接衝過去！先確認周圍有沒有車子、漏電或掉落物，確認安全後再執行「兩個叫」。</div>
+      <div class="grid-2">
+        <div class="card">
+          <h3><span class="step-num">1</span>第一個「叫」：確認意識與呼吸</h3>
+          <ul>
+            <li><strong>拍肩呼喚</strong>：輕拍患者雙肩並大聲問「你還好嗎？」。</li>
+            <li><strong>10 秒看呼吸</strong>：眼睛掃視胸部與腹部，看是否有正常起伏。</li>
+            <li>若無反應且沒有正常呼吸（或只是偶爾抽氣），立刻進入下一步。</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3><span class="step-num">2</span>第二個「叫」：撥打 119 與拿 AED</h3>
+          <ul>
+            <li><strong>指定旁人求助</strong>：「穿紅衣服的同學幫我打 119，戴眼鏡的同學去拿 AED！」</li>
+            <li><strong>獨自一人時</strong>：先打 119 並開啟擴音，邊聽指導員指示邊急救。</li>
+            <li><strong>報案三重點</strong>：明確地點（地標/門牌）、患者狀態、已做處置。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 3: Source 02 -->
+    <div class="slide">
+      <div class="header">
+        <div>
+          <div class="badge">第二課｜幫心臟手動打氣</div>
+          <div class="title">成人心肺復甦術（CPR）四大標準</div>
+        </div>
+        <div class="source-tag">知識來源：Wiki Source 02</div>
+      </div>
+      <div class="beginner-tip">💡 <strong>新手白話理解</strong>：心臟停止跳動後，腦部超過 4–6 分鐘缺氧就可能受損。CPR 就是用雙手代替心臟，把含氧血液壓送到大腦！</div>
+      <div class="card" style="margin-bottom: 16px;">
+        <h3>📍 按壓位置與姿勢</h3>
+        <p>跪在患者身側，將掌根放在<strong>兩乳頭連線正中央（胸骨下半段）</strong>，另一手交疊扣住、手肘打直，用上半身力量垂直往下壓。</p>
+      </div>
+      <div class="grid-4">
+        <div class="card"><h3>1. 用力壓</h3><p>成人按壓深度至少 <strong>5 公分</strong>（不超過 6 公分），力道要足夠。</p></div>
+        <div class="card"><h3>2. 快快壓</h3><p>每分鐘 <strong>100～120 下</strong>（約每秒 2 下，節奏接近〈小星星〉）。</p></div>
+        <div class="card"><h3>3. 胸回彈</h3><p>每次下壓後讓胸口完全彈回原位，心臟才能重新裝滿血液。</p></div>
+        <div class="card"><h3>4. 莫中斷</h3><p>換手或貼 AED 時，中斷按壓時間盡量不超過 <strong>10 秒</strong>。</p></div>
+      </div>
+    </div>
+
+    <!-- Slide 4: Source 03 -->
+    <div class="slide">
+      <div class="header">
+        <div>
+          <div class="badge">第三課｜會說話的傻瓜電擊器</div>
+          <div class="title">AED 使用四口訣：「開、貼、插、電」</div>
+        </div>
+        <div class="source-tag">知識來源：Wiki Source 03</div>
+      </div>
+      <div class="beginner-tip">💡 <strong>新手白話理解</strong>：怕電錯人怎麼辦？別擔心！AED 會自動偵測心跳，如果患者不需要電擊，就算你按電擊鈕它也不會放電。</div>
+      <div class="grid-4">
+        <div class="card"><h3><span class="step-num">開</span>打開電源</h3><p>掀開上蓋或按下電源鍵，機器會開始播放中文語音指導。</p></div>
+        <div class="card"><h3><span class="step-num">貼</span>貼上貼片</h3><p>依貼片圖示貼在裸露乾燥胸壁（右上鎖骨下、左下乳頭外側）。</p></div>
+        <div class="card"><h3><span class="step-num">插</span>插入導線</h3><p>將貼片接頭插入主機閃燈插孔（部分機型出廠已接好）。</p></div>
+        <div class="card"><h3><span class="step-num">電</span>確認電擊</h3><p>大喊「大家離開！」確認無人碰觸患者後按電擊鈕，接著立刻繼續壓 CPR。</p></div>
+      </div>
+    </div>
+
+    <!-- Slide 5: Source 04 -->
+    <div class="slide">
+      <div class="header">
+        <div>
+          <div class="badge">第四課｜吃東西噎到怎麼辦</div>
+          <div class="title">呼吸道異物哽塞與哈姆立克法</div>
+        </div>
+        <div class="source-tag">知識來源：Wiki Source 04</div>
+      </div>
+      <div class="beginner-tip">💡 <strong>新手白話理解</strong>：哈姆立克法的原理就像「擠壓寶特瓶」，利用橫膈膜瞬間往上擠壓肺部空氣，把卡在氣管的食物衝出來。</div>
+      <div class="grid-2">
+        <div class="card">
+          <h3>🔍 先分辨輕度還是重度哽塞</h3>
+          <ul>
+            <li><strong>輕度（還能咳出聲音）</strong>：鼓勵他繼續用力咳嗽，<strong>千萬不要拍背</strong>，避免異物滑進更深處。</li>
+            <li><strong>重度（雙手掐脖子、發不出聲音）</strong>：立刻執行哈姆立克法！</li>
+          </ul>
+        </div>
+        <div class="card">
+          <h3>👐 成人哈姆立克法三步驟</h3>
+          <ul>
+            <li><strong>站穩姿勢</strong>：站到背後，一腳跨進對方雙腳間呈弓箭步。</li>
+            <li><strong>找對位置</strong>：一手握拳，<strong>大拇指側</strong>抵在<strong>肚臍上方兩橫指</strong>處。</li>
+            <li><strong>快速擠壓</strong>：另一手包住拳頭，<strong>「向內、向上」</strong>快速用力推擠，直到異物吐出。</li>
+          </ul>
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 6: Source 05 -->
+    <div class="slide">
+      <div class="header">
+        <div>
+          <div class="badge">第五課｜校園外傷與迷思破解</div>
+          <div class="title">創傷大出血止血與常見意外處理</div>
+        </div>
+        <div class="source-tag">知識來源：Wiki Source 05</div>
+      </div>
+      <div class="card">
+        <h3>🩸 創傷大出血：直接加壓止血法</h3>
+        <p>用乾淨紗布覆蓋傷口並<strong>直接用力按壓 5–10 分鐘</strong>。若血滲出來，<strong>不要把舊紗布拿掉</strong>（會扯破剛結好的血塊），直接再疊一層新紗布繼續壓！</p>
+      </div>
+      <div class="myth-box">
+        <div class="wrong">
+          <strong>❌ 常見錯誤迷思</strong><br>
+          • 流鼻血時「頭往後仰」或塞衛生紙<br>
+          • 燙傷時塗「牙膏、醬油或香灰」<br>
+          • 腳踝剛扭傷立刻用力推拿熱敷
+        </div>
+        <div class="right">
+          <strong>✅ 正確急救作法</strong><br>
+          • <strong>流鼻血</strong>：身體微前傾，捏住<strong>鼻翼兩側</strong>加壓 5–10 分鐘<br>
+          • <strong>燒燙傷</strong>：立刻「<strong>沖、脫、泡、蓋、送</strong>」冷水沖 15–30 分鐘<br>
+          • <strong>急性扭傷</strong>：先休息、冰敷與彈性繃帶加壓固定
+        </div>
+      </div>
+    </div>
+
+    <!-- Slide 7: Quiz -->
+    <div class="slide">
+      <div class="header">
+        <div>
+          <div class="badge">學習驗收｜10 秒自我檢測</div>
+          <div class="title">隨堂測驗：遇到大出血或流鼻血該怎麼做？</div>
+        </div>
+        <div class="source-tag">綜合測驗（Wiki Source 01–05）</div>
+      </div>
+      <p style="font-size: 16px; margin-bottom: 16px; font-weight: 700;">題目：同學在操場跌倒手臂大量流血，第一層紗布已經被血浸透了，這時應該怎麼處理？</p>
+      <button class="quiz-opt" onclick="checkQuiz(false, this)">A. 立刻把濕掉的舊紗布撕下來換新的，傷口才乾淨</button>
+      <button class="quiz-opt" onclick="checkQuiz(true, this)">B. 保留原本的紗布，直接在上面疊加新的乾淨紗布繼續加壓</button>
+      <button class="quiz-opt" onclick="checkQuiz(false, this)">C. 先放開傷口去沖水 10 分鐘，等血自己停下來</button>
+      <div id="quiz-fb" class="quiz-feedback"></div>
+    </div>
+
+    <!-- Footer Navigation -->
+    <div class="footer">
+      <button class="nav-btn" id="prevBtn" onclick="moveSlide(-1)" disabled>← 上一頁</button>
+      <div class="dots" id="dots"></div>
+      <button class="nav-btn" id="nextBtn" onclick="moveSlide(1)">下一頁 →</button>
+    </div>
+  </div>
+
+  <script>
+    let current = 0;
+    const slides = document.querySelectorAll('.slide');
+    const dotsBox = document.getElementById('dots');
+
+    slides.forEach((_, idx) => {
+      const d = document.createElement('div');
+      d.className = 'dot' + (idx === 0 ? ' active' : '');
+      d.onclick = () => showSlide(idx);
+      dotsBox.appendChild(d);
+    });
+
+    function showSlide(n) {
+      slides[current].classList.remove('active');
+      dotsBox.children[current].classList.remove('active');
+      current = n;
+      slides[current].classList.add('active');
+      dotsBox.children[current].classList.add('active');
+      document.getElementById('prevBtn').disabled = current === 0;
+      document.getElementById('nextBtn').disabled = current === slides.length - 1;
+    }
+
+    function moveSlide(step) { showSlide(current + step); }
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' && current < slides.length - 1) moveSlide(1);
+      if (e.key === 'ArrowLeft' && current > 0) moveSlide(-1);
+    });
+
+    function checkQuiz(isCorrect, btn) {
+      const fb = document.getElementById('quiz-fb');
+      fb.style.display = 'block';
+      if (isCorrect) {
+        fb.style.background = '#dcfce7';
+        fb.style.color = '#166534';
+        fb.innerHTML = '🎉 答對了！撕掉舊紗布會破壞剛形成的凝血塊導致再次大出血，正確做法是「直接疊加新紗布繼續加壓」（Source 05）。';
+      } else {
+        fb.style.background = '#fee2e2';
+        fb.style.color = '#991b1b';
+        fb.innerHTML = '❌ 再想一下喔！大出血時應優先直接加壓止血，且不能撕除已貼在傷口上的舊紗布。';
+      }
+    }
+  </script>
+</body>
+</html>
